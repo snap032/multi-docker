@@ -1,0 +1,21 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t snap032/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run snap032/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t snap032/multi-client ./client
+  - docker build -t snap032/multi-nginx ./nginx
+  - docker build -t snap032/multi-server ./server
+  - docker build -t snap032/multi-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push snap032/multi-client
+  - docker push snap032/multi-nginx
+  - docker push snap032/multi-server
+  - docker push snap032/multi-worker
